@@ -97,9 +97,11 @@ fun SettingsScreen(
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
-                        }), SettingsEntry(
-                        label = "Privacy & Security", icon = Icons.Filled.Lock
-                    ), SettingsEntry(
+                        }),
+//                    SettingsEntry(
+//                        label = "Privacy & Security", icon = Icons.Filled.Lock
+//                    ),
+                    SettingsEntry(
                         label = "Logout",
                         icon = Icons.AutoMirrored.Filled.Logout,
                         onClick = { showLogoutDialog = true })
@@ -108,9 +110,9 @@ fun SettingsScreen(
 
             SettingsSection(
                 title = "Transactions", entries = listOf(
-                    SettingsEntry(
-                        label = "Categories", icon = Icons.Filled.Category
-                    ),
+//                    SettingsEntry(
+//                        label = "Categories", icon = Icons.Filled.Category
+//                    ),
                     SettingsEntry(
                         label = "Currency",
                         trailingText = config?.currencyCode ?: "",
