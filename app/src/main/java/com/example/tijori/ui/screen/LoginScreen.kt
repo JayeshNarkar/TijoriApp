@@ -1,7 +1,9 @@
 package com.example.tijori.ui.screen
 
+import android.content.Context
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -46,6 +48,8 @@ import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import kotlinx.coroutines.launch
 import com.example.tijori.R
 import com.example.tijori.generateSecureRandomNonce
+import com.example.tijori.ui.viewmodel.UserDBViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 //@Preview
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
@@ -54,8 +58,7 @@ import com.example.tijori.generateSecureRandomNonce
 fun LoginScreen(
     modifier: Modifier = Modifier,
     webClientId: String = "",
-    onNavigateBack: () -> Unit = {},
-    onSignInSuccess: () -> Unit = {}
+    viewModel: UserDBViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -63,21 +66,8 @@ fun LoginScreen(
     val isDarkTheme = isSystemInDarkTheme()
 
     Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = { Text("Tijori") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                }
-            )
-        }
-    ){ innerPadding ->
+        modifier = modifier
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -87,26 +77,29 @@ fun LoginScreen(
                 onClick = {
                     if (!isSigningIn) {
                         isSigningIn = true
-                        Log.d("LoginINFO","Webclientid: $webClientId")
+                        Log.d("LoginINFO", "Webclientid: $webClientId")
                         val signInWithGoogleOption: GetSignInWithGoogleOption =
-                            GetSignInWithGoogleOption
-                                .Builder(serverClientId = webClientId)
-                                .setNonce(generateSecureRandomNonce())
-                                .build()
+                            GetSignInWithGoogleOption.Builder(serverClientId = webClientId)
+                                .setNonce(generateSecureRandomNonce()).build()
 
                         val request: GetCredentialRequest = GetCredentialRequest.Builder()
-                            .addCredentialOption(signInWithGoogleOption)
-                            .build()
-
+                            .addCredentialOption(signInWithGoogleOption).build()
                         coroutineScope.launch {
-                            val error = signIn(request, context)
+                            signIn(request, context, onSuccess = { userDetails ->
+                                val (email, displayName, profilePictureURI) = userDetails
+
+
+                                viewModel.addUser(
+                                    email, displayName, profilePictureURI
+                                )
+                            }, onFailure = { errorMessage ->
+                                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                            })
                             isSigningIn = false
-                            if (error == null) {
-                                onSignInSuccess()
-                            }
                         }
                     }
-                },enabled = !isSigningIn,
+                },
+                enabled = !isSigningIn,
                 shape = RoundedCornerShape(24.dp),
                 border = BorderStroke(1.dp, Color(0xFFDADCE0)),
                 colors = ButtonDefaults.outlinedButtonColors(
@@ -119,21 +112,17 @@ fun LoginScreen(
             ) {
                 if (isSigningIn) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp
+                        modifier = Modifier.size(18.dp), strokeWidth = 2.dp
                     )
                 } else {
                     Image(
                         painter = painterResource(
                             id = if (isDarkTheme) R.drawable.google_logo_dark else R.drawable.google_logo_light
-                        ),
-                        contentDescription = "Google Logo",
-                        modifier = Modifier.size(25.dp)
+                        ), contentDescription = "Google Logo", modifier = Modifier.size(25.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Sign in with Google",
-                        style = MaterialTheme.typography.labelLarge
+                        text = "Sign in with Google", style = MaterialTheme.typography.labelLarge
                     )
                 }
             }

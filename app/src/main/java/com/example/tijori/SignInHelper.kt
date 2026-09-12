@@ -2,21 +2,14 @@ package com.example.tijori
 
 import android.content.Context
 import android.os.Build
-import androidx.compose.ui.res.painterResource
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialCustomException
 import androidx.credentials.exceptions.GetCredentialException
-import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import androidx.credentials.exceptions.NoCredentialException
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -24,17 +17,26 @@ import androidx.credentials.GetCredentialRequest
 import java.security.SecureRandom
 import java.util.Base64
 
+data class UserDetails(
+    val email: String,
+    val displayName: String?,
+    var profilePictureUri: String
+)
+
+
 object SignInHelper {
     private const val TAG = "SignInHelper";
+
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    suspend fun signIn(request: GetCredentialRequest, context: Context): Exception? {
+    suspend fun signIn(
+        request: GetCredentialRequest,
+        context: Context,
+        onSuccess: (UserDetails) -> Unit,
+        onFailure: (String) -> Unit
+    ) {
         val credentialManager = CredentialManager.create(context)
         val failureMessage = "Sign in failed!"
-        //using delay() here helps prevent NoCredentialException when the BottomSheet Flow is triggered
-        //on the initial running of our app
-        delay(250)
-        return try {
-            // The getCredential is called to request a credential from Credential Manager.
+        try {
             val result = credentialManager.getCredential(
                 request = request,
                 context = context,
@@ -43,34 +45,44 @@ object SignInHelper {
 
             val credential = result.credential
             if (credential is CustomCredential &&
-                credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+            ) {
                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                Log.i(TAG, "Signed in as: ${googleIdTokenCredential.id}")
+                onSuccess(
+                    UserDetails(
+                        googleIdTokenCredential.id,
+                        googleIdTokenCredential.displayName,
+                        googleIdTokenCredential.profilePictureUri.toString()
+                    )
+                )
+            } else {
+                onFailure("Error with credentials.")
             }
-
-            Toast.makeText(context, "Sign in successful!", Toast.LENGTH_SHORT).show()
-            Log.i(TAG, "(☞ﾟヮﾟ)☞  Sign in Successful!  ☜(ﾟヮﾟ☜)")
-            null
         } catch (e: GoogleIdTokenParsingException) {
+            val errorMsg = "$failureMessage: Issue with parsing received GoogleIdToken"
             Toast.makeText(context, failureMessage, Toast.LENGTH_SHORT).show()
-            Log.e(TAG, failureMessage + ": Issue with parsing received GoogleIdToken", e)
-            e
+            Log.e(TAG, errorMsg, e)
+            onFailure(errorMsg)
         } catch (e: NoCredentialException) {
+            val errorMsg = "$failureMessage: No credentials found"
             Toast.makeText(context, failureMessage, Toast.LENGTH_SHORT).show()
-            Log.e(TAG, failureMessage + ": No credentials found", e)
-            e
+            Log.e(TAG, errorMsg, e)
+            onFailure(errorMsg)
         } catch (e: GetCredentialCancellationException) {
-            Toast.makeText(context, "Sign-in cancelled", Toast.LENGTH_SHORT).show()
-            Log.e(TAG, failureMessage + ": Sign-in was cancelled", e)
-            e
+            val errorMsg = "Sign-in cancelled"
+            Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "$failureMessage: Sign-in was cancelled", e)
+            onFailure(errorMsg)
         } catch (e: GetCredentialCustomException) {
+            val errorMsg = "$failureMessage: Issue with custom credential request"
             Toast.makeText(context, failureMessage, Toast.LENGTH_SHORT).show()
-            Log.e(TAG, failureMessage + ": Issue with custom credential request", e)
-            e
+            Log.e(TAG, errorMsg, e)
+            onFailure(errorMsg)
         } catch (e: GetCredentialException) {
+            val errorMsg = "$failureMessage: Failure getting credentials"
             Toast.makeText(context, failureMessage, Toast.LENGTH_SHORT).show()
-            Log.e(TAG, failureMessage + ": Failure getting credentials", e)
-            e
+            Log.e(TAG, errorMsg, e)
+            onFailure(errorMsg)
         }
     }
 }
@@ -80,3 +92,4 @@ fun generateSecureRandomNonce(byteLength: Int = 32): String {
     SecureRandom.getInstanceStrong().nextBytes(randomBytes)
     return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes)
 }
+
