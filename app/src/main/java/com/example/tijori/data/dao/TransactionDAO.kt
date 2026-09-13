@@ -124,4 +124,17 @@ interface TransactionDao {
     """
     )
     fun getExpenseTotalsByCategory(userId: String, since: Date): Flow<List<CategoryTotal>>
+
+    data class TransactionEligibilityStats(
+        val count: Int,
+        val oldestDate: Date?,
+        val newestDate: Date?
+    )
+
+    @Query("""
+        SELECT COUNT(*) as count, MIN(date) as oldestDate, MAX(date) as newestDate
+        FROM Transactions
+        WHERE userId = :userId AND needsReview = 0
+    """)
+    suspend fun getEligibilityStats(userId: String): TransactionEligibilityStats
 }

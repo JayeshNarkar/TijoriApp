@@ -12,20 +12,13 @@ data class AppConfig(
     val currencyCode: String = "USD",
     val currencySymbol: String = "$",
     val timezoneId: String = TimeZone.getDefault().id,
-    val weekStartDay: WeekStartDay = WeekStartDay.MONDAY,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
-    val budgetCycleStartDay: Int = 1,  // 1-28
+    val enableInsights: Boolean = false,
     val minimumBalance: Double? = null,
     val enableNotifications: Boolean = true,
     val startingBalance: Double = 0.0,
     val startingBalanceDate: Date = Date(),
 )
-
-enum class WeekStartDay {
-    MONDAY,
-    SUNDAY,
-    SATURDAY
-}
 
 enum class ThemeMode {
     LIGHT,

@@ -15,21 +15,27 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.tijori.data.entities.ExpenseCategory
 import com.example.tijori.data.entities.TimeFrame
+import com.example.tijori.ui.theme.FrauncesFontFamily
 import com.example.tijori.ui.theme.color
 
 @Composable
@@ -82,7 +88,7 @@ fun BalanceSummaryCard(
             )
             Text(
                 text = estimatedBalance,
-                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.headlineLarge.copy(fontFamily = FrauncesFontFamily, fontWeight = FontWeight.SemiBold),
                 modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
             )
 
@@ -137,6 +143,7 @@ private fun BalanceStat(label: String, value: String, dotColor: Color,modifier: 
         Text(
             text = value,
             style = MaterialTheme.typography.titleLarge.copy(
+                fontFamily = FrauncesFontFamily,
                 fontWeight = FontWeight.SemiBold,
                 color = dotColor
             ),
@@ -170,7 +177,10 @@ fun CategoryBreakdownCard(
             ) {
                 Text(
                     text = "Where it went",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = FrauncesFontFamily,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 )
                 Text(
                     text = "${slices.size} categories",
@@ -241,6 +251,63 @@ fun CategoryBreakdownCard(
                 if (index != slices.lastIndex) {
                     HorizontalDivider()
                 }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun AiAnalyticsGate(
+    enabled: Boolean,
+    onEnableClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    if (enabled) {
+        content()
+        return
+    }
+
+    Box(modifier = modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .blur(16.dp)
+        ) {
+            content()
+        }
+
+        // Dark scrim on top of the blur so the CTA reads clearly regardless
+        // of what light/dark colors sit underneath in the blurred content.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .background(Color.Black.copy(alpha = 0.35f))
+        )
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Filled.AutoAwesome,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Text(
+                text = "Unlock deeper insights",
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                color = Color.White.copy(alpha = 0.85f),
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+            Button(onClick = onEnableClick) {
+                Text("Turn on AI Analytics")
             }
         }
     }

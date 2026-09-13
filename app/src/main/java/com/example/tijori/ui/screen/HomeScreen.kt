@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -35,6 +36,7 @@ import com.example.tijori.ui.components.TransactionRow
 import com.example.tijori.ui.components.HomeHeader
 import com.example.tijori.ui.components.ReviewTransactionDialog
 import com.example.tijori.ui.components.SummaryCard
+import com.example.tijori.ui.theme.FrauncesFontFamily
 import com.example.tijori.ui.theme.color
 import com.example.tijori.ui.viewmodel.AppConfigDBViewModel
 import com.example.tijori.ui.viewmodel.AppConfigLoadState
@@ -122,7 +124,7 @@ fun HomeScreen(
                 Text(
                     modifier = Modifier.padding(PaddingValues(start = 16.dp, top = 15.dp)),
                     text = "Summary",
-                    style = MaterialTheme.typography.headlineSmall
+                    style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FrauncesFontFamily, fontWeight = FontWeight.SemiBold)
                 )
 
                 Column(
@@ -180,7 +182,7 @@ fun HomeScreen(
                 if (needsReview.isNotEmpty()) {
                     Text(
                         text = "Needs Review",
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FrauncesFontFamily, fontWeight = FontWeight.SemiBold),
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
                     Column(
@@ -200,7 +202,7 @@ fun HomeScreen(
                 Text(
                     modifier = Modifier.padding(PaddingValues(start = 16.dp, top = 15.dp)),
                     text = "Categories",
-                    style = MaterialTheme.typography.headlineSmall
+                    style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FrauncesFontFamily, fontWeight = FontWeight.SemiBold)
                 )
                 LazyRow(
                     modifier = Modifier.padding(vertical = 8.dp),
@@ -236,7 +238,7 @@ fun HomeScreen(
                 Text(
                     modifier = Modifier.padding(PaddingValues(start = 16.dp, top = 5.dp)),
                     text = "Transactions",
-                    style = MaterialTheme.typography.headlineSmall
+                    style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FrauncesFontFamily, fontWeight = FontWeight.SemiBold)
                 )
 
                 if (transactions.isEmpty()) {

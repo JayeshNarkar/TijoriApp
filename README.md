@@ -14,23 +14,23 @@ Tijori is being built toward a more ambitious idea: personal finance software th
 
 ### Light Mode
 
-| Preview 1                                      | Preview 2                                      |
-| ---------------------------------------------- | ---------------------------------------------- |
-| ![Tijori light mode preview 1](imgs/img5.jpeg) | ![Tijori light mode preview 2](imgs/img6.jpeg) |
-
-| Preview 3                                      | Preview 4                                      |
-| ---------------------------------------------- | ---------------------------------------------- |
-| ![Tijori light mode preview 3](imgs/img7.jpeg) | ![Tijori light mode preview 4](imgs/img8.jpeg) |
-
-### Dark Mode
-
 | Preview 1                                     | Preview 2                                     |
 | --------------------------------------------- | --------------------------------------------- |
-| ![Tijori dark mode preview 1](imgs/img1.jpeg) | ![Tijori dark mode preview 2](imgs/img2.jpeg) |
+| ![Tijori light mode preview 1](imgs/img5.png) | ![Tijori light mode preview 2](imgs/img6.png) |
 
 | Preview 3                                     | Preview 4                                     |
 | --------------------------------------------- | --------------------------------------------- |
-| ![Tijori dark mode preview 3](imgs/img3.jpeg) | ![Tijori dark mode preview 4](imgs/img4.jpeg) |
+| ![Tijori light mode preview 3](imgs/img7.png) | ![Tijori light mode preview 4](imgs/img8.png) |
+
+### Dark Mode
+
+| Preview 1                                    | Preview 2                                    |
+| -------------------------------------------- | -------------------------------------------- |
+| ![Tijori dark mode preview 1](imgs/img1.png) | ![Tijori dark mode preview 2](imgs/img2.png) |
+
+| Preview 3                                    | Preview 4                                    |
+| -------------------------------------------- | -------------------------------------------- |
+| ![Tijori dark mode preview 3](imgs/img3.png) | ![Tijori dark mode preview 4](imgs/img4.png) |
 
 ## Why Tijori
 

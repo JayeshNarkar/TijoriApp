@@ -66,6 +66,7 @@ import com.example.tijori.data.entities.IncomeCategory
 import com.example.tijori.data.entities.ThemeMode
 import com.example.tijori.data.entities.Transaction
 import com.example.tijori.data.entities.TransactionType
+import com.example.tijori.ui.theme.FrauncesFontFamily
 import com.example.tijori.ui.theme.color
 import com.example.tijori.ui.theme.displayAmount
 import com.example.tijori.ui.theme.displayCategoryName
@@ -100,7 +101,7 @@ fun HomeHeader(
             )
             Text(
                 text = firstName,
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium.copy(fontFamily = FrauncesFontFamily, fontWeight = FontWeight.SemiBold)
             )
         }
 
@@ -249,7 +250,7 @@ fun ReviewTransactionDialog(
             ) {
                 Text(
                     text = "${if (isDebit) "Categorize Expense" else "Categorize Income"} — ₹${transaction.displayAmount}",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = FrauncesFontFamily, fontWeight = FontWeight.SemiBold),
                     modifier = Modifier.weight(1f)
                 )
                 IconButton(onClick = onDelete) {
@@ -575,7 +576,11 @@ fun SummaryCard(
             )
             Text(
                 text = value,
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold, fontSize = 22.sp),
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontFamily = FrauncesFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 22.sp
+                ),
                 modifier = Modifier.padding(top = 2.dp),
                 color = when {
                     label.contains("income", ignoreCase = true) -> Color(0xFF4CAF50)

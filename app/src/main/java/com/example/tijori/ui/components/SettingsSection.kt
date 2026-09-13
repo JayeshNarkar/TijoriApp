@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -29,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +48,94 @@ data class SettingsEntry(
     val trailingText: String? = null,
     val onClick: () -> Unit = {}
 )
+
+private const val REQUIRED_TRANSACTION_COUNT = 30
+private const val REQUIRED_DAY_SPAN = 30
+
+@Composable
+fun InsightsEligibilityDialog(
+    transactionCount: Int,
+    dayRangeSpan: Long, // days between oldest and newest transaction
+    currentlyEnabled: Boolean,
+    onConfirm: (Boolean) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val meetsCountRequirement = transactionCount >= REQUIRED_TRANSACTION_COUNT
+    val meetsSpanRequirement = dayRangeSpan >= REQUIRED_DAY_SPAN
+    val isEligible = meetsCountRequirement && meetsSpanRequirement
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (isEligible) "You're all set! 🎉" else "AI Insights") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (isEligible) {
+                    Text(
+                        text = "You've logged enough history for AI Insights to actually mean something. Turn it on to see deeper patterns in your spending.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                } else {
+                    Text(
+                        text = "AI Insights needs a bit more data before it can spot real patterns. Here's what's left:",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                RequirementRow(
+                    label = "At least $REQUIRED_TRANSACTION_COUNT transactions",
+                    current = "$transactionCount / $REQUIRED_TRANSACTION_COUNT",
+                    met = meetsCountRequirement
+                )
+                RequirementRow(
+                    label = "$REQUIRED_DAY_SPAN days of history",
+                    current = "$dayRangeSpan / $REQUIRED_DAY_SPAN days",
+                    met = meetsSpanRequirement
+                )
+            }
+        },
+        confirmButton = {
+            if (isEligible) {
+                Button(onClick = {
+                    onConfirm(!currentlyEnabled)
+                    onDismiss()
+                }) {
+                    Text(if (currentlyEnabled) "Turn Off" else "Turn On")
+                }
+            } else {
+                TextButton(onClick = onDismiss) { Text("Got it") }
+            }
+        },
+        dismissButton = if (isEligible) {
+            { TextButton(onClick = onDismiss) { Text("Not now") } }
+        } else null
+    )
+}
+
+@Composable
+private fun RequirementRow(label: String, current: String, met: Boolean) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = if (met) Icons.Filled.CheckCircle else Icons.Filled.Circle,
+                contentDescription = null,
+                tint = if (met) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Text(text = label, style = MaterialTheme.typography.bodyMedium)
+        }
+        Text(
+            text = current,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = if (met) FontWeight.SemiBold else FontWeight.Normal
+            ),
+            color = if (met) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
 
 @Composable
 fun SettingsSection(

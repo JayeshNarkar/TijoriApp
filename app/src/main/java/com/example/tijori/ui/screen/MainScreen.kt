@@ -84,11 +84,17 @@ fun MainScreen(
                 HomeScreen(
                     onNavigateToSettings = {
                         navController.navigateToBottomNavDestination(SettingsRoute)
-                    },onNavigateToViewAllTransactions = {
+                    }, onNavigateToViewAllTransactions = {
                         navController.navigateToBottomNavDestination(ViewAllTransactionsRoute)
                     })
             }
-            composable<StatisticsRoute> { StatisticsScreen() }
+            composable<StatisticsRoute> {
+                StatisticsScreen(onNavigateToSettings = {
+                    navController.navigateToBottomNavDestination(
+                        SettingsRoute
+                    )
+                })
+            }
             composable<SettingsRoute> {
                 SettingsScreen(onBack = { navController.popBackStack() })
             }

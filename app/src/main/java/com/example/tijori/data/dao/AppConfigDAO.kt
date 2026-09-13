@@ -33,14 +33,11 @@ interface AppConfigDao {
     @Query("UPDATE app_config SET themeMode = :mode WHERE id = 'app_config_singleton'")
     suspend fun updateThemeMode(mode: com.example.tijori.data.entities.ThemeMode)
 
-    @Query("UPDATE app_config SET weekStartDay = :day WHERE id = 'app_config_singleton'")
-    suspend fun updateWeekStartDay(day: com.example.tijori.data.entities.WeekStartDay)
-
     @Query("UPDATE app_config SET minimumBalance = :minimum WHERE id = 'app_config_singleton'")
     suspend fun updateMinimumBalance(minimum: Double?)
 
-    @Query("UPDATE app_config SET budgetCycleStartDay = :day WHERE id = 'app_config_singleton'")
-    suspend fun updateBudgetCycleStartDay(day: Int)
+    @Query("UPDATE app_config SET enableInsights = :enabled WHERE id = 'app_config_singleton'")
+    suspend fun updateEnableInsights(enabled: Boolean)
 
     @Query("UPDATE app_config SET enableNotifications = :enabled WHERE id = 'app_config_singleton'")
     suspend fun updateNotificationsEnabled(enabled: Boolean)

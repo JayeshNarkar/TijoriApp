@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -19,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.tijori.data.entities.TimeFrame
 import com.example.tijori.data.entities.startDate
+import com.example.tijori.ui.components.AiAnalyticsGate
 import com.example.tijori.ui.components.BalanceSummaryCard
 import com.example.tijori.ui.components.CategoryBreakdownCard
 import com.example.tijori.ui.components.CategorySlice
@@ -37,7 +40,8 @@ fun StatisticsScreen(
     modifier: Modifier = Modifier,
     userViewModel: UserDBViewModel = hiltViewModel(),
     configViewModel: AppConfigDBViewModel = hiltViewModel(),
-    transactionViewModel: TransactionDBViewModel = hiltViewModel()
+    transactionViewModel: TransactionDBViewModel = hiltViewModel(),
+    onNavigateToSettings: () -> Unit = {}
 ) {
     val userState by userViewModel.currentUserState.collectAsState()
     val user = (userState as? UserLoadState.Loaded)?.user
@@ -49,8 +53,6 @@ fun StatisticsScreen(
 
     val currSymbol = config?.currencySymbol ?: "₹"
 
-    // --- Estimated balance: independent of the selected timeframe, always
-    // measured from startingBalanceDate, same calculation as Home's Summary. ---
     val balanceIncomeFlow = remember(user, config?.startingBalanceDate) {
         if (user != null && config != null) {
             transactionViewModel.getIncomeTotalSince(user.id, config.startingBalanceDate)
@@ -67,7 +69,6 @@ fun StatisticsScreen(
 
     val estimatedBalance = (config?.startingBalance ?: 0.0) + balanceIncome - balanceExpense
 
-    // --- Income/Expenses for the selected timeframe only ---
     val timeFrameIncomeFlow = remember(user, selectedTimeFrame) {
         user?.let { transactionViewModel.getIncomeTotalSince(it.id, selectedTimeFrame.startDate()) }
             ?: emptyFlow()
@@ -75,13 +76,23 @@ fun StatisticsScreen(
     val timeFrameIncome by timeFrameIncomeFlow.collectAsState(initial = 0.0)
 
     val timeFrameExpenseFlow = remember(user, selectedTimeFrame) {
-        user?.let { transactionViewModel.getExpenseTotalSince(it.id, selectedTimeFrame.startDate()) }
+        user?.let {
+            transactionViewModel.getExpenseTotalSince(
+                it.id,
+                selectedTimeFrame.startDate()
+            )
+        }
             ?: emptyFlow()
     }
     val timeFrameExpense by timeFrameExpenseFlow.collectAsState(initial = 0.0)
 
     val categoryTotalsFlow = remember(user, selectedTimeFrame) {
-        user?.let { transactionViewModel.getExpenseTotalsByCategory(it.id, selectedTimeFrame.startDate()) }
+        user?.let {
+            transactionViewModel.getExpenseTotalsByCategory(
+                it.id,
+                selectedTimeFrame.startDate()
+            )
+        }
             ?: emptyFlow()
     }
     val categoryTotals by categoryTotalsFlow.collectAsState(initial = emptyList())
@@ -100,7 +111,7 @@ fun StatisticsScreen(
         modifier = modifier,
         topBar = { TijoriTopBar(title = "Statistics") }
     ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
+        Column(modifier = Modifier.padding(innerPadding).verticalScroll(rememberScrollState())) {
             LazyRow(
                 modifier = Modifier.padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -127,6 +138,17 @@ fun StatisticsScreen(
                 slices = categorySlices,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
             )
+
+            AiAnalyticsGate(
+                enabled = config?.enableInsights == true,
+                onEnableClick = onNavigateToSettings,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+            ) {
+                CategoryBreakdownCard(
+                    currSymbol = currSymbol,
+                    slices = categorySlices
+                )
+            }
         }
     }
 }

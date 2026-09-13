@@ -67,6 +67,8 @@ class TransactionDBViewModel @Inject constructor(
     fun getIncomeTotalSince(userId: String, since: Date): Flow<Double> =
         transactionDao.getIncomeTotalSince(userId, since)
 
+    suspend fun getEligibilityStats(userId: String) = transactionDao.getEligibilityStats(userId)
+
     fun addTransaction(
         userId: String,
         amount: Double,

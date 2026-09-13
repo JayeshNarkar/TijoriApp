@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.tijori.data.dao.AppConfigDao
 import com.example.tijori.data.entities.AppConfig
 import com.example.tijori.data.entities.ThemeMode
-import com.example.tijori.data.entities.WeekStartDay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -57,12 +56,6 @@ class AppConfigDBViewModel @Inject constructor(
         }
     }
 
-    fun updateWeekStartDay(day: WeekStartDay) {
-        viewModelScope.launch {
-            appConfigDao.updateWeekStartDay(day)
-        }
-    }
-
     fun updateStartingBalance(balance: Double, date: Date) {
         viewModelScope.launch {
             appConfigDao.updateStartingBalance(balance, date)
@@ -75,9 +68,9 @@ class AppConfigDBViewModel @Inject constructor(
         }
     }
 
-    fun updateBudgetCycleStartDay(day: Int) {
+    fun updateEnableInsights(enabled: Boolean) {
         viewModelScope.launch {
-            appConfigDao.updateBudgetCycleStartDay(day.coerceIn(1, 28))
+            appConfigDao.updateEnableInsights(enabled)
         }
     }
 
