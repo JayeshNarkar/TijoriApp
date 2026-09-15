@@ -2,126 +2,116 @@
 
 > **A financial memory that builds itself.**
 
-Tijori is an Android transaction-tracking app that turns everyday bank notifications into a structured, continuously growing picture of a user's finances. When a bank sends an alert such as `50 USD debited from your account`, Tijori can recognize it, extract the important details, and record the movement automatically.
+Tijori tracks personal income and expenses on Android. It reads bank SMS automatically, categorizes transactions, and estimates your balance in real time.
 
-The result is a more complete financial record with less manual effort: incoming money, outgoing money, cash purchases, and transactions that never generated an alert can all live in one place.
+## Features
 
-Tijori is being built toward a more ambitious idea: personal finance software that does not merely display the past, but understands patterns, anticipates pressure, and helps people act before a problem appears.
+**Automatic transaction capture.** Tijori parses incoming bank SMS in the background, even when the app isn't running. It extracts the amount, direction (debit or credit), and UPI reference, then flags the transaction for review. A duplicate SMS never creates a duplicate entry.
 
-> **Project status:** The core transaction-tracking experience is implemented. Financial analysis, forecasting, recommendations, and AI capabilities are part of the roadmap.
+**Manual entry.** Add a transaction directly: pick a type (expense or income), a category, an amount, a date, and a time.
+
+**Categorization.** Expenses and income use separate category sets (Groceries, Transportation, Dining, and so on for expenses; Salary, Refund, Interest, and so on for income). Each category carries a color and icon for quick visual scanning.
+
+**Balance estimation.** Set a starting balance and a date. Tijori nets every transaction since that date against the starting figure and shows an estimated balance on Home and Statistics. Set an optional minimum balance and Tijori shows your usable balance alongside it.
+
+**Statistics.** Filter by time frame — This Week, This Month, This Year, or All Time. Review income and expense totals, and see a category breakdown with percentages.
+
+**AI Insights.** Once a user logs at least 30 transactions spanning 30 days, Tijori unlocks AI-generated analysis: a written summary and a short list of specific observations, computed from real spending data and sent to a lightweight Flask backend. Locked users see a blurred preview instead of empty space.
+
+**Settings.** Manage currency, theme (light, dark, or system), starting balance, minimum balance, notifications, and AI Insights eligibility from one screen.
 
 ## Showcase
 
-### Light Mode
+|         Home (Light)         |         Home (Dark)         |
+| :--------------------------: | :-------------------------: |
+| ![Home Light](imgs/img1.png) | ![Home Dark](imgs/img2.png) |
 
-| Preview 1                                     | Preview 2                                     |
-| --------------------------------------------- | --------------------------------------------- |
-| ![Tijori light mode preview 1](imgs/img5.png) | ![Tijori light mode preview 2](imgs/img6.png) |
+|         Statistics (Light)         |         Statistics (Dark)         |
+| :--------------------------------: | :-------------------------------: |
+| ![Statistics Light](imgs/img3.png) | ![Statistics Dark](imgs/img4.png) |
 
-| Preview 3                                     | Preview 4                                     |
-| --------------------------------------------- | --------------------------------------------- |
-| ![Tijori light mode preview 3](imgs/img7.png) | ![Tijori light mode preview 4](imgs/img8.png) |
+|          AI Insights          |          Add Transaction          |
+| :---------------------------: | :-------------------------------: |
+| ![AI Insights](imgs/img5.png) | ![Add Transaction](imgs/img6.png) |
 
-### Dark Mode
+|         Settings (Light)         |         Settings (Dark)         |
+| :------------------------------: | :-----------------------------: |
+| ![Settings Light](imgs/img7.png) | ![Settings Dark](imgs/img8.png) |
 
-| Preview 1                                    | Preview 2                                    |
-| -------------------------------------------- | -------------------------------------------- |
-| ![Tijori dark mode preview 1](imgs/img1.png) | ![Tijori dark mode preview 2](imgs/img2.png) |
+|       Insight Eligibility        |         Edit Transaction         |
+| :------------------------------: | :------------------------------: |
+| ![Settings Light](imgs/img9.png) | ![Settings Dark](imgs/img10.png) |
 
-| Preview 3                                    | Preview 4                                    |
-| -------------------------------------------- | -------------------------------------------- |
-| ![Tijori dark mode preview 3](imgs/img3.png) | ![Tijori dark mode preview 4](imgs/img4.png) |
+## Architecture
 
-## Why Tijori
+Tijori follows a standard MVVM structure:
 
-Traditional expense trackers depend on perfect user discipline. Tijori starts from a different premise: financial data should be captured as close as possible to the moment it happens.
+- **Entities** (`data/entities`) define the Room schema: `User`, `AppConfig`, `Transaction`, `InsightsCache`.
+- **DAOs** (`data/dao`) hold all database queries.
+- **ViewModels** (`ui/viewmodel`) expose state as `StateFlow` and `Flow`, and own all business logic. Screens never touch a DAO directly.
+- **Composables** (`ui/screen`, `ui/components`) render state and forward user actions back to the ViewModel.
+- **Hilt** wires every dependency — the database, DAOs, the network client, and the repository — through `@Module`-annotated providers. Nothing is a hand-rolled singleton.
 
-- **Automatic capture:** Supported bank SMS alerts can become transactions without repetitive data entry.
-- **Complete coverage:** Debit, credit, bank, and cash transactions can be tracked together.
-- **Recovery by design:** Missed alerts and offline cash activity can be added manually.
-- **Built for intelligence:** A reliable transaction history creates the foundation for future analysis and forecasting.
+### Navigation
 
-## What Works Today
+Tijori uses Jetpack Navigation Compose with type-safe, `@Serializable` routes instead of string paths. Two navigation layers exist:
 
-### Transaction Capture
+1. An outer gate in `MainActivity` chooses between the login flow and the main app, based on whether a user is currently signed in.
+2. An inner `NavHost` in `MainScreen` handles the tabbed area (Home, Statistics) plus pushed screens (Settings, Add Transaction, View All Transactions).
 
-- Parses supported bank SMS messages to identify debit and credit transactions automatically
-- Extracts amounts, transaction direction, payees or payers, and UPI references
-- Supports manual transaction entry for missed alerts, unregistered activity, and cash payments
+### Data layer
 
-### Transaction Management
+Room backs every persistent store. A single `AppConfig` row holds app-wide settings. `Transaction` rows carry a `type` (`DEBIT` or `CREDIT`), one of two nullable category fields depending on that type, and a `needsReview` flag for anything Tijori parsed from SMS but hasn't yet confirmed with the user.
 
-- Displays a home dashboard for financial activity
-- Organizes transactions by category
-- Allows transactions to be reviewed, edited, categorized, or deleted
-- Provides a complete, paginated transaction history
-- Stores users, app settings, and transactions locally with Room
+### SMS parsing
 
-### Account and Experience
+A manifest-registered `BroadcastReceiver` listens for `SMS_RECEIVED`, even while the app is closed. `BankSmsParser` matches known bank SMS formats with regex, extracts the amount, direction, and UPI transaction ID, and inserts a `needsReview` transaction. The UPI ID prevents duplicate entries if a bank resends the same message.
 
-- Supports Google sign-in through Android Credential Manager
-- Provides a responsive interface built with Jetpack Compose and Material 3
+> SMS access is restricted on the Play Store to default SMS handlers. This feature targets personal or sideloaded use, not Play Store distribution, unless that changes.
 
-## Tech Stack
+### AI Insights
 
-| Layer                 | Technologies                                                    |
-| --------------------- | --------------------------------------------------------------- |
-| Language and platform | Kotlin, Android SDK                                             |
-| UI                    | Jetpack Compose, Material 3                                     |
-| State and navigation  | Kotlin coroutines, Flow, AndroidX ViewModel, Navigation Compose |
-| Persistence           | Room                                                            |
-| Dependency injection  | Hilt                                                            |
-| Identity              | Android Credential Manager, Google Identity                     |
-| Image loading         | Coil                                                            |
+A small Flask service, fronted by nginx and Groq's API, accepts a compact text summary of a user's spending (current month plus three prior months, plus a few notable transactions) and returns a short JSON summary. Tijori caches the response in Room and refreshes it once every 24 hours, or immediately if the covered period changes. The client never sends raw transaction-level data — only aggregated totals and a handful of flagged amounts.
 
-## How It Works
+## Tech stack
 
-```text
-Bank SMS alert ──> SMS receiver ──> Transaction parser ──> Room database
-															   │
-Manual or cash entry ─────────────────────────────────────────┘
-															   │
-												   Compose UI + ViewModels
+- Kotlin, Jetpack Compose, Material 3
+- Room (persistence), Hilt (dependency injection)
+- Navigation Compose with type-safe routes
+- Retrofit + OkHttp (network)
+- Coil (image loading)
+- Flask + Groq API (AI Insights backend)
+
+## Project structure
+
+```
+app/
+  data/
+    entities/       Room entities
+    dao/            Room DAOs
+    database/        TijoriDatabase, Hilt DatabaseModule
+    repository/      InsightsRepository
+    converter/        Room TypeConverters
+  di/                Hilt modules
+  network/           Retrofit interface, request/response models
+  sms/               BroadcastReceiver, SMS parser
+  ui/
+    screen/          Full-screen composables
+    components/       Reusable composables
+    viewmodel/         ViewModels
+    navigation/        Routes and nav helpers
+    theme/             Typography, color extensions
 ```
 
-1. Users grant permission to receive and read supported bank SMS alerts.
-2. A bank alert arrives for a debit or credit transaction.
-3. The receiver and parser extract the amount, direction, payee or payer, and UPI reference.
-4. Users can fill gaps by entering missed, unregistered, or cash transactions manually.
-5. Room persists every transaction locally, while ViewModels expose the data to the Compose UI.
+## Setup
 
-## Future Intelligence
+1. Clone the repository and open it in Android Studio.
+2. Add a Google OAuth web client ID for sign-in.
+3. Point the Retrofit base URL at your own Flask deployment, or disable AI Insights.
+4. Build and run. Grant SMS permissions if you want automatic transaction capture.
 
-The next phase moves Tijori from transaction capture toward financial understanding.
+## Known limitations
 
-### Spending Intelligence
-
-- [ ] Analyze spending habits for the current month
-- [ ] Compare current spending patterns with previous months
-- [ ] Detect unusual spending, sudden spending spikes, and anomalous transactions
-- [ ] Identify recurring payments, subscriptions, bills, and other financial commitments
-- [ ] Surface category-level trends and explain what is driving spending changes
-
-### Forecasting and Planning
-
-- [ ] Forecast whether a user will run out of money before the end of the month
-- [ ] Estimate financial runway until the user's next expected salary or income
-- [ ] Generate personalized budgets based on income, history, and upcoming commitments
-- [ ] Recommend practical ways to reduce unnecessary spending
-
-### AI-Powered Assistance
-
-- [ ] Add AI-powered transaction categorization for ambiguous merchants
-- [ ] Provide AI-generated financial summaries, insights, and recommendations
-- [ ] Add confidence-aware forecasts that communicate uncertainty clearly
-
-## Learning Goals
-
-This project is also a practical exploration of:
-
-- Building Android interfaces with Jetpack Compose
-- Designing a local persistence layer with Room
-- Using Hilt for dependency injection
-- Managing UI state with ViewModels, coroutines, and Flow
-- Receiving and parsing bank SMS messages
-- Structuring a multi-screen Android application with Navigation Compose
+- SMS parsing covers a narrow set of message formats and needs expansion for banks beyond the ones tested.
+- Destructive migration is in place during development. Replace it with real `Migration` objects before shipping to real users with data worth keeping.
+- The Flask backend has no rate limiting. Add it before exposing the endpoint beyond a single trusted client.

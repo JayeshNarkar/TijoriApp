@@ -6,10 +6,13 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.tijori.data.converter.DateConverter
+import com.example.tijori.data.converter.StringListConverter
 import com.example.tijori.data.dao.AppConfigDao
+import com.example.tijori.data.dao.InsightsCacheDao
 import com.example.tijori.data.dao.TransactionDao
 import com.example.tijori.data.dao.UserDao
 import com.example.tijori.data.entities.AppConfig
+import com.example.tijori.data.entities.InsightsCache
 import com.example.tijori.data.entities.Transaction
 import com.example.tijori.data.entities.User
 import dagger.Module
@@ -20,14 +23,14 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 @Database(
-    entities = [User::class, AppConfig::class, Transaction::class], version = 1, exportSchema = true
+    entities = [User::class, AppConfig::class, Transaction::class, InsightsCache::class], version = 1, exportSchema = true
 )
-@TypeConverters(DateConverter::class)
+@TypeConverters(DateConverter::class, StringListConverter::class)
 abstract class TijoriDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun appConfigDao(): AppConfigDao
     abstract fun transactionDao(): TransactionDao
-
+    abstract fun insightsCacheDao(): InsightsCacheDao
 }
 
 @Module
@@ -53,5 +56,9 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideTransactionDao(database: TijoriDatabase): TransactionDao = database.transactionDao()
+
+    @Provides
+    @Singleton
+    fun provideInsightsCacheDao(database: TijoriDatabase): InsightsCacheDao = database.insightsCacheDao()
 
 }

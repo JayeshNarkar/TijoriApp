@@ -137,4 +137,42 @@ interface TransactionDao {
         WHERE userId = :userId AND needsReview = 0
     """)
     suspend fun getEligibilityStats(userId: String): TransactionEligibilityStats
+
+    @Query("""
+    SELECT COALESCE(SUM(amount), 0.0) FROM Transactions
+    WHERE userId = :userId AND type = 'DEBIT' AND date BETWEEN :start AND :end AND needsReview = 0
+""")
+    suspend fun getExpenseTotalBetween(userId: String, start: Date, end: Date): Double
+
+    @Query("""
+    SELECT COALESCE(SUM(amount), 0.0) FROM Transactions
+    WHERE userId = :userId AND type = 'CREDIT' AND date BETWEEN :start AND :end AND needsReview = 0
+""")
+    suspend fun getIncomeTotalBetween(userId: String, start: Date, end: Date): Double
+
+    @Query("""
+    SELECT expenseCategory, SUM(amount) as total, COUNT(*) as count FROM Transactions
+    WHERE userId = :userId AND type = 'DEBIT' AND date BETWEEN :start AND :end AND needsReview = 0
+    GROUP BY expenseCategory
+    ORDER BY total DESC
+""")
+    suspend fun getExpenseBreakdownBetween(userId: String, start: Date, end: Date): List<CategoryTotalWithCount>
+
+    @Query("""
+    SELECT incomeCategory, SUM(amount) as total, COUNT(*) as count FROM Transactions
+    WHERE userId = :userId AND type = 'CREDIT' AND date BETWEEN :start AND :end AND needsReview = 0
+    GROUP BY incomeCategory
+    ORDER BY total DESC
+""")
+    suspend fun getIncomeBreakdownBetween(userId: String, start: Date, end: Date): List<IncomeCategoryTotalWithCount>
+
+    @Query("""
+    SELECT * FROM Transactions
+    WHERE userId = :userId AND date BETWEEN :start AND :end AND needsReview = 0
+    ORDER BY amount DESC LIMIT :limit
+""")
+    suspend fun getTopTransactionsBetween(userId: String, start: Date, end: Date, limit: Int): List<Transaction>
+
+    data class CategoryTotalWithCount(val expenseCategory: ExpenseCategory?, val total: Double, val count: Int)
+    data class IncomeCategoryTotalWithCount(val incomeCategory: IncomeCategory?, val total: Double, val count: Int)
 }

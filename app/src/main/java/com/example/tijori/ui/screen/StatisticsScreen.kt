@@ -8,9 +8,13 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,10 +25,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.tijori.data.entities.TimeFrame
 import com.example.tijori.data.entities.startDate
+import com.example.tijori.data.repository.InsightsResult
 import com.example.tijori.ui.components.AiAnalyticsGate
 import com.example.tijori.ui.components.BalanceSummaryCard
 import com.example.tijori.ui.components.CategoryBreakdownCard
 import com.example.tijori.ui.components.CategorySlice
+import com.example.tijori.ui.components.InsightsCard
 import com.example.tijori.ui.components.TijoriTopBar
 import com.example.tijori.ui.components.TimeFrameChip
 import com.example.tijori.ui.viewmodel.AppConfigDBViewModel
@@ -107,6 +113,26 @@ fun StatisticsScreen(
         )
     }
 
+    var isEligibleForInsights by remember { mutableStateOf(false) }
+
+    LaunchedEffect(user) {
+        user?.let {
+            val stats = transactionViewModel.getEligibilityStats(it.id)
+            val daySpan = if (stats.oldestDate != null && stats.newestDate != null) {
+                java.util.concurrent.TimeUnit.MILLISECONDS.toDays(stats.newestDate.time - stats.oldestDate.time)
+            } else 0L
+            isEligibleForInsights = stats.count >= 30 && daySpan >= 30
+        }
+    }
+
+    LaunchedEffect(user, config?.enableInsights, isEligibleForInsights) {
+        if (user != null && config?.enableInsights == true && isEligibleForInsights) {
+            transactionViewModel.loadInsights(user.id, config.currencySymbol)
+        }
+    }
+
+    val insightsState by transactionViewModel.insightsState.collectAsState()
+
     Scaffold(
         modifier = modifier,
         topBar = { TijoriTopBar(title = "Statistics") }
@@ -144,11 +170,39 @@ fun StatisticsScreen(
                 onEnableClick = onNavigateToSettings,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
             ) {
-                CategoryBreakdownCard(
-                    currSymbol = currSymbol,
-                    slices = categorySlices
-                )
+                if (!isEligibleForInsights) {
+                    LoremIpsumInsightsPlaceholder()
+                } else {
+                    when (val state = insightsState) {
+                        is InsightsResult.Success -> {
+                            InsightsCard(
+                                summary = state.cache.summary,
+                                flags = state.cache.flags
+                            )
+                        }
+                        is InsightsResult.Error -> {
+                            Text(
+                                text = "Couldn't load insights: ${state.message}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                        null -> CircularProgressIndicator()
+                    }
+                }
             }
         }
     }
+}
+
+@Composable
+private fun LoremIpsumInsightsPlaceholder() {
+    InsightsCard(
+        summary = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Your spending this month shows a notable pattern across a few categories, with room for a couple of specific observations here.",
+        flags = listOf(
+            "Lorem ipsum dolor sit amet consectetur",
+            "Adipiscing elit sed do eiusmod tempor",
+            "Incididunt ut labore et dolore magna"
+        )
+    )
 }

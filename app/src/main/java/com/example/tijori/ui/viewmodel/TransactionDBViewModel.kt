@@ -7,6 +7,8 @@ import com.example.tijori.data.entities.ExpenseCategory
 import com.example.tijori.data.entities.IncomeCategory
 import com.example.tijori.data.entities.Transaction
 import com.example.tijori.data.entities.TransactionType
+import com.example.tijori.data.repository.InsightsRepository
+import com.example.tijori.data.repository.InsightsResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +20,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TransactionDBViewModel @Inject constructor(
-    private val transactionDao: TransactionDao
+    private val transactionDao: TransactionDao,
+    private val insightsRepository: InsightsRepository
 ) : ViewModel() {
     fun getTransactionsNeedingReview(userId: String) = transactionDao.getNeedingReview(userId)
 
@@ -128,6 +131,15 @@ class TransactionDBViewModel @Inject constructor(
             currentOffset += page.size
             reachedEnd = page.size < pageSize
             _isLoadingMore.value = false
+        }
+    }
+
+    private val _insightsState = MutableStateFlow<InsightsResult?>(null)
+    val insightsState: StateFlow<InsightsResult?> = _insightsState.asStateFlow()
+
+    fun loadInsights(userId: String, currencySymbol: String, forceRefresh: Boolean = false) {
+        viewModelScope.launch {
+            _insightsState.value = insightsRepository.getInsights(userId, currencySymbol, forceRefresh)
         }
     }
 }
