@@ -22,25 +22,21 @@ Tijori tracks personal income and expenses on Android. It reads bank SMS automat
 
 ## Showcase
 
-|         Home (Light)         |         Home (Dark)         |
-| :--------------------------: | :-------------------------: |
-| ![Home Light](imgs/img1.png) | ![Home Dark](imgs/img2.png) |
+|          Home          |          Settings          |
+| :--------------------: | :------------------------: |
+| ![Home](imgs/img1.png) | ![Settings](imgs/img7.png) |
+
+|          Insight Eligibility          |          AI Insights          |
+| :-----------------------------------: | :---------------------------: |
+| ![Insight Eligibility](imgs/img9.png) | ![AI Insights](imgs/img5.png) |
 
 |         Statistics (Light)         |         Statistics (Dark)         |
 | :--------------------------------: | :-------------------------------: |
 | ![Statistics Light](imgs/img3.png) | ![Statistics Dark](imgs/img4.png) |
 
-|          AI Insights          |          Add Transaction          |
-| :---------------------------: | :-------------------------------: |
-| ![AI Insights](imgs/img5.png) | ![Add Transaction](imgs/img6.png) |
-
-|         Settings (Light)         |         Settings (Dark)         |
-| :------------------------------: | :-----------------------------: |
-| ![Settings Light](imgs/img7.png) | ![Settings Dark](imgs/img8.png) |
-
-|       Insight Eligibility        |         Edit Transaction         |
-| :------------------------------: | :------------------------------: |
-| ![Settings Light](imgs/img9.png) | ![Settings Dark](imgs/img10.png) |
+|          Add Transaction          |          Edit Transaction           |
+| :-------------------------------: | :---------------------------------: |
+| ![Add Transaction](imgs/img6.png) | ![Edit Transaction](imgs/img10.png) |
 
 ## Architecture
 
